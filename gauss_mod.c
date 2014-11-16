@@ -1,6 +1,5 @@
 #include "gauss_mod.h"
-
-/** Секция векторных операций для модифицированного метода Гаусса */
+#include <math.h>
 
 static int *sequence;
 
@@ -56,7 +55,6 @@ number_t gauss_mod_solve(matrix_t m, vector_t *f)
         return d;
 }
 
-/** Секция матричных операций для метода Гаусса (обратная матрица) */
 static void gm_swap(int i, int j, void *arg)
 {
         int t = sequence[i];
@@ -95,16 +93,20 @@ matrix_t gauss_mod_invert(matrix_t m)
         }
         gauss_mod_full(m, &matr_ops, &result);
 
+        int *old_rows = (int *) malloc (m.size * sizeof (int));
+        
         for (int i=0; i<m.size; i++) {
-                result.cols[i] = sequence[i];
+                old_rows[i] = result.rows[i];
         }
 
+        for (int i=0; i<m.size; i++) {
+                result.rows[i] = old_rows[sequence[i]];
+        }
 
+        free(old_rows);
         free(sequence);
         return result;
 }
-
-/** Секция общих операций метода Гаусса */
 
 number_t gauss_mod_full(matrix_t m, gauss_mod_handlers_t *h, void *arg)
 {
@@ -117,15 +119,14 @@ number_t gauss_mod_direct(matrix_t m, gauss_mod_handlers_t *h, void *arg)
 {
         number_t det = 1;
 
-        /* Пройдём всю матрицу построчно, в каждой строке выбирая главный элемент */
         for (int i = 0; i < m.size; i++) {
                 int base_elem = i;
 
-                number_t max_elem = matrix_elem(m, i, i);
+                number_t max_elem = fabs(matrix_elem(m, i, i));
                 int max_elem_ind = i;
                 for (int j = i + 1; j < m.size; j++) {
-                        if (matrix_elem(m, i, j) > max_elem) {
-                                max_elem = matrix_elem(m, i, i);
+                        if (fabs(matrix_elem(m, i, j)) > max_elem) {
+                                max_elem = fabs(matrix_elem(m, i, j));
                                 max_elem_ind = j;
                         }
                 }
@@ -141,16 +142,11 @@ number_t gauss_mod_direct(matrix_t m, gauss_mod_handlers_t *h, void *arg)
                 if (i != max_elem_ind)
                         det = -det;
 
-                /* Теперь работаем с i-й строкой матрицы - здесь диагональный элемент ненулевой */
-                /* Делим значения строки на значение первого элемента. На это же значение умножаем
-                 * значение будущего определителя матрицы */
                 number_t divider = matrix_elem(m, i, i);
                 det *= divider;
                 h->div(i, divider, arg); /* f.vector[i] /= divider; */
                 matrix_divRow(m, i, divider);
 
-                /* Вычитаем строку из всех тех оставшихся, в которых i-й элемент ненулевой
-                 * (с домножением на соответствующий коэффициент */
                 for (int j = i + 1; j < m.size; j++) {
                         if (NOT_ZERO(matrix_elem(m, j, i))) {
                                 number_t mul = matrix_elem(m, j, i);
@@ -158,15 +154,6 @@ number_t gauss_mod_direct(matrix_t m, gauss_mod_handlers_t *h, void *arg)
                                 h->hit(i, j, -mul, arg); /* f.vector[j] -= mul * f.vector[i]; */
                         }
                 }
-
-                /*
-                matrix_print(stderr, m);
-                fputc('\n', stderr);
-                vector_print(stderr, f);
-                fputc('\n', stderr);
-                fputc('\n', stderr);
-                */
-                
         }
 
         return det;
@@ -174,7 +161,6 @@ number_t gauss_mod_direct(matrix_t m, gauss_mod_handlers_t *h, void *arg)
 
 void gauss_mod_reverse(matrix_t m, gauss_mod_handlers_t *h, void *arg)
 {
-        /* Обратный ход метода Гаусса */
         for (int i = m.size - 1; i >= 0; i--) {
                 for (int j = i - 1; j >= 0; j--) {
                         if (NOT_ZERO(matrix_elem(m, j, i))) {
