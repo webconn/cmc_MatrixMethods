@@ -54,7 +54,7 @@ matrix_t matrix_readN(FILE *stream, int N)
         return ret;
 }
 
-void matrix_print(FILE *stream, matrix_t m)
+void matrix_print(FILE *stream, matrix_t m, format_t f)
 {
         for (int i=0; i<m.size; i++) {
                 for (int j=0; j<m.size; j++) {
@@ -140,7 +140,7 @@ vector_t vector_readN(FILE *stream, int n)
         return v;
 }
 
-void vector_print(FILE *stream, vector_t v)
+void vector_print(FILE *stream, vector_t v, format_t f)
 {
         for (int i = 0; i < v.size; i++) {
                 fprintf(stream, NUMBER_WRITE_FORMAT " ", v.vector[i]);
