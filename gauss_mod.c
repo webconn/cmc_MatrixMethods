@@ -59,9 +59,9 @@ number_t gauss_mod_solve(matrix_t m, vector_t *f)
 /** Секция матричных операций для метода Гаусса (обратная матрица) */
 static void gm_swap(int i, int j, void *arg)
 {
-        matrix_t *m = (matrix_t *) arg;
-
-        matrix_swapCols(*m, i, j);
+        int t = sequence[i];
+        sequence[i] = sequence[j];
+        sequence[j] = t;
 }
 
 static void gm_div(int i, number_t div, void *arg)
@@ -86,11 +86,21 @@ static gauss_mod_handlers_t matr_ops = {
 
 matrix_t gauss_mod_invert(matrix_t m)
 {
+        sequence = (int *) malloc (m.size * sizeof (int));
+
         matrix_t result = matrix_create(m.size);
         for (int i=0; i<m.size; i++) {
                 result.matrix[i][i] = 1;
+                sequence[i] = i;
         }
         gauss_mod_full(m, &matr_ops, &result);
+
+        for (int i=0; i<m.size; i++) {
+                result.cols[i] = sequence[i];
+        }
+
+
+        free(sequence);
         return result;
 }
 
