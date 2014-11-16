@@ -148,6 +148,17 @@ void vector_print(FILE *stream, vector_t v, format_t f)
         fputc('\n', stream);
 }
 
+vector_t vector_copy(vector_t source)
+{
+        vector_t ret = vector_create(source.size);
+
+        for (int i=0; i<ret.size; i++) {
+                ret.vector[i] = source.vector[i];
+        }
+
+        return ret;
+}
+
 void vector_exchangeElems(vector_t v, int a, int b)
 {
         number_t tmp = v.vector[a];
@@ -160,6 +171,13 @@ void matrix_exchangeRows(matrix_t m, int a, int b)
         unsigned int tmp = m.rows[a];
         m.rows[a] = m.rows[b];
         m.rows[b] = tmp;
+}
+
+void matrix_swapCols(matrix_t m, int a, int b)
+{
+        unsigned int tmp = m.cols[a];
+        m.cols[a] = m.cols[b];
+        m.cols[b] = tmp;
 }
 
 void vector_free(vector_t v)

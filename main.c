@@ -109,7 +109,7 @@ void op_det(enum m_methods met, format_t format)
 
 void op_invert(enum m_methods met, format_t format)
 {
-        if (met != METHOD_GAUSS || met != METHOD_GAUSS_MOD) {
+        if (met != METHOD_GAUSS && met != METHOD_GAUSS_MOD) {
                 fprintf(stderr, "[INPUT] Invertion methods: gauss and gauss_mod\n");
                 return;
         }
