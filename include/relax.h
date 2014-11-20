@@ -3,6 +3,6 @@
 
 #include "matrix.h"
 
-void relax_solve(matrix_t m, vector_t *f);
+void relax_solve(matrix_t m, vector_t *f, number_t omega, number_t eps);
 
 #endif

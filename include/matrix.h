@@ -39,6 +39,7 @@ void matrix_exchangeRows(matrix_t m, int a, int b);
 void matrix_swapCols(matrix_t m, int a, int b);
 void matrix_divRow(matrix_t m, int j, number_t div);
 void matrix_hitRow(matrix_t m, int src, int dst, number_t mul);
+void matrix_mulMatVector(matrix_t m, vector_t f, vector_t result);
 
 vector_t vector_create(int n);
 vector_t vector_read(FILE *stream);
@@ -46,6 +47,8 @@ vector_t vector_readN(FILE *stream, int n);
 vector_t vector_copy(vector_t source);
 void vector_print(FILE *stream, vector_t v, format_t f);
 void vector_exchangeElems(vector_t v, int a, int b);
+void vector_sub(vector_t a, vector_t b, vector_t result);
+number_t vector_norm(vector_t v);
 
 void matrix_free(matrix_t matrix);
 void vector_free(vector_t vector);

@@ -26,7 +26,7 @@ static enum m_methods {
 } method;
 
 static char *method_names[] = {
-        "gauss", "gauss_mod", "relaxation"
+        "gauss", "gauss_mod", "relax"
 };
 
 static char *ops_names[] = {
@@ -59,6 +59,8 @@ void op_solve(enum m_methods met, format_t format)
         fprintf(stderr, "[INPUT] Type vector f (length %d)\n", m.size);
         vector_t f = vector_readN(stdin, m.size);
 
+        number_t omega = 1;
+        number_t eps = 0.0001;
         switch (met) {
                 case METHOD_GAUSS:
                         gauss_solve(m, &f);
@@ -67,7 +69,11 @@ void op_solve(enum m_methods met, format_t format)
                         gauss_mod_solve(m, &f);
                         break;
                 case METHOD_RELAXATION:
-                        relax_solve(m, &f);
+                        fprintf(stderr, "[INPUT] Type 'omega' for over relaxation method\n");
+                        scanf(NUMBER_READ_FORMAT, &omega);
+                        fprintf(stderr, "[INPUT] Type precision coefficient (eps)\n");
+                        scanf(NUMBER_READ_FORMAT, &eps);
+                        relax_solve(m, &f, omega, eps);
                         break;
         }
 

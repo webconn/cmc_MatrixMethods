@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "matrix.h"
 
@@ -56,12 +57,24 @@ matrix_t matrix_readN(FILE *stream, int N)
 
 void matrix_print(FILE *stream, matrix_t m, format_t f)
 {
+        if (f == FORMAT_LATEX)
+                fprintf(stream, "\\begin{pmatrix}\n");
+
         for (int i=0; i<m.size; i++) {
                 for (int j=0; j<m.size; j++) {
                         fprintf(stream, NUMBER_WRITE_FORMAT " ", m.matrix[m.rows[i]][m.cols[j]]);
+                        if (f == FORMAT_LATEX && j != m.size - 1)
+                                fprintf(stream, " & ");
                 }
+
+                if (f == FORMAT_LATEX && i != m.size - 1)
+                        fprintf(stream, " \\\\");
+
                 fputc('\n', stream);
         }
+
+        if (f == FORMAT_LATEX)
+                fprintf(stream, "\\end{pmatrix}\n");
 }
 
 matrix_t matrix_copy(matrix_t source)
@@ -180,9 +193,40 @@ void matrix_swapCols(matrix_t m, int a, int b)
         m.cols[b] = tmp;
 }
 
+void matrix_mulMatVector(matrix_t m, vector_t f, vector_t result)
+{
+        for (int i=0; i<result.size; i++) {
+                number_t sum = 0;
+
+                for (int j=0; j<result.size; j++) {
+                        sum += m.matrix[m.rows[i]][m.cols[j]] * f.vector[j];
+                }
+                
+                result.vector[i] = sum;
+        }
+}
+
 void vector_free(vector_t v)
 {
         free(v.vector);
+}
+
+void vector_sub(vector_t a, vector_t b, vector_t result)
+{
+        for (int i=0; i<result.size; i++) {
+                result.vector[i] = a.vector[i] - b.vector[i];
+        }
+}
+
+number_t vector_norm(vector_t a)
+{
+        number_t sum = 0;
+
+        for (int i=0; i<a.size; i++) {
+                sum += a.vector[i] * a.vector[i];
+        }
+
+        return sqrt(sum);
 }
 
 void matrix_free(matrix_t m)
