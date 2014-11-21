@@ -34,8 +34,10 @@ matrix_t matrix_readN(FILE *stream, int N)
         /* 3. read matrix data */
         for (unsigned int i=0; i<N; i++) {
                 for (unsigned int j=0; j<N; j++) {
-                        if (stream != NULL && fscanf(stream, NUMBER_READ_FORMAT, &matrix[i][j]) == 0) {
-                                fprintf(stderr, "ERROR: Wrong input stream (unexpected EOF)\n");
+                        if (stream != NULL && fscanf(stream, NUMBER_READ_FORMAT, 
+                                                &matrix[i][j]) == 0) {
+                                fprintf(stderr, "ERROR: Wrong input stream "
+                                                "(unexpected EOF)\n");
                                 exit(1);
                         } else if (stream == NULL) {
                                 matrix[i][j] = 0;
@@ -62,7 +64,8 @@ void matrix_print(FILE *stream, matrix_t m, format_t f)
 
         for (int i=0; i<m.size; i++) {
                 for (int j=0; j<m.size; j++) {
-                        fprintf(stream, NUMBER_WRITE_FORMAT " ", m.matrix[m.rows[i]][m.cols[j]]);
+                        fprintf(stream, NUMBER_WRITE_FORMAT " ", 
+                                        m.matrix[m.rows[i]][m.cols[j]]);
                         if (f == FORMAT_LATEX && j != m.size - 1)
                                 fprintf(stream, " & ");
                 }
@@ -80,8 +83,8 @@ void matrix_print(FILE *stream, matrix_t m, format_t f)
 matrix_t matrix_copy(matrix_t source)
 {
         number_t **m = (number_t **) malloc(source.size * sizeof (number_t *));
-        unsigned int *rows = (unsigned int *) malloc(source.size * sizeof (unsigned int));
-        unsigned int *cols = (unsigned int *) malloc(source.size * sizeof (unsigned int));
+        unsigned int *rows = (unsigned int *) malloc(source.size * sizeof (int));
+        unsigned int *cols = (unsigned int *) malloc(source.size * sizeof (int));
 
         for (int i=0; i<source.size; i++) {
                 m[i] = (number_t *) malloc(source.size * sizeof (number_t));
@@ -155,9 +158,19 @@ vector_t vector_readN(FILE *stream, int n)
 
 void vector_print(FILE *stream, vector_t v, format_t f)
 {
+        if (f == FORMAT_LATEX) 
+                fprintf(stream, "\\begin{pmatrix}\n");
+
         for (int i = 0; i < v.size; i++) {
                 fprintf(stream, NUMBER_WRITE_FORMAT " ", v.vector[i]);
+
+                if (f == FORMAT_LATEX)
+                        fprintf(stream, " \\\\\n");
         }
+
+        if (f == FORMAT_LATEX) 
+                fprintf(stream, "\\end{pmatrix}");
+
         fputc('\n', stream);
 }
 

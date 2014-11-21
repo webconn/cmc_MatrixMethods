@@ -69,9 +69,11 @@ void op_solve(enum m_methods met, format_t format)
                         gauss_mod_solve(m, &f);
                         break;
                 case METHOD_RELAXATION:
-                        fprintf(stderr, "[INPUT] Type 'omega' for over relaxation method\n");
+                        fprintf(stderr, "[INPUT] Type 'omega' for over" 
+                                        "relaxation method\n");
                         scanf(NUMBER_READ_FORMAT, &omega);
-                        fprintf(stderr, "[INPUT] Type precision coefficient (eps)\n");
+                        fprintf(stderr, "[INPUT] Type precision"
+                                        "coefficient (eps)\n");
                         scanf(NUMBER_READ_FORMAT, &eps);
                         relax_solve(m, &f, omega, eps);
                         break;
@@ -87,7 +89,8 @@ void op_solve(enum m_methods met, format_t format)
 void op_det(enum m_methods met, format_t format)
 {
         if (met != METHOD_GAUSS && met != METHOD_GAUSS_MOD) {
-                fprintf(stderr, "[INPUT] Determinant calculation methods: gauss and gauss_mod\n");
+                fprintf(stderr, "[INPUT] Determinant calculation methods: "
+                                "gauss and gauss_mod\n");
                 return;
         }
 
@@ -144,9 +147,12 @@ char *argv0;
 
 void print_help()
 {
-        fprintf(stderr, "Usage: %s -o <operation> -m <method> [-f <format>]\n\n", argv0);
-        fprintf(stderr, " -o, --operation=<operation>\tOperation name: det, solve, invert\n");
-        fprintf(stderr, " -m, --method=<method>\t\tMethod: gauss, gauss_mod, relax (only for solve operation)\n");
+        fprintf(stderr, "Usage: %s -o <operation> -m <method> [-f <format>]\n\n", 
+                        argv0);
+        fprintf(stderr, " -o, --operation=<operation>\tOperation name: det, "
+                        "solve, invert\n");
+        fprintf(stderr, " -m, --method=<method>\t\tMethod: gauss, gauss_mod, "
+                        "relax (only for solve operation)\n");
         fprintf(stderr, " -f, --format=<format>\t\tOutput format: text, latex\n");
         fprintf(stderr, " -h, --help\t\t\tPrint this message\n\n");
 }
@@ -167,11 +173,13 @@ int main(int argc, char *argv[])
                                 flag_gotmet = 1;
                                 method = 0;
 
-                                while (method != METHOD_END && strcmp(optarg, method_names[method]))
+                                while (method != METHOD_END && 
+                                       strcmp(optarg, method_names[method]))
                                         method++;
 
                                 if (method == METHOD_END) {
-                                        fprintf(stderr, "ERROR: Unknown method: %s\n\n", optarg);
+                                        fprintf(stderr, "ERROR: Unknown method: "
+                                                        "%s\n\n", optarg);
                                         print_help();
                                         exit(1);
                                 }
@@ -180,11 +188,13 @@ int main(int argc, char *argv[])
                                 flag_gotop = 1;
                                 operation = 0;
 
-                                while (operation != OPERATION_END && strcmp(optarg, ops_names[operation]))
+                                while (operation != OPERATION_END && 
+                                       strcmp(optarg, ops_names[operation]))
                                         operation++;
 
                                 if (operation == OPERATION_END) {
-                                        fprintf(stderr, "ERROR: Unknown operation: %s\n\n", optarg);
+                                        fprintf(stderr, "ERROR: Unknown operation: "
+                                                        "%s\n\n", optarg);
                                         print_help();
                                         exit(1);
                                 }
@@ -193,11 +203,13 @@ int main(int argc, char *argv[])
                                 flag_gotformat = 1;
                                 format = 0;
 
-                                while (format != FORMAT_END && strcmp(optarg, format_names[format]))
+                                while (format != FORMAT_END && 
+                                       strcmp(optarg, format_names[format]))
                                         format++;
 
                                 if (format == FORMAT_END) {
-                                        fprintf(stderr, "ERROR: Unknown format: %s\n\n", optarg);
+                                        fprintf(stderr, "ERROR: Unknown format: "
+                                                        "%s\n\n", optarg);
                                         print_help();
                                         exit(1);
                                 }
