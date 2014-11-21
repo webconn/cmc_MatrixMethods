@@ -3,11 +3,14 @@
 #include "matrix.h"
 #include <math.h>
 
-static void relax_iteration(matrix_t m, vector_t f, vector_t old, vector_t new, number_t omega)
+/* Итерация метода верхней релаксации */
+static void relax_iteration(matrix_t m, vector_t f, vector_t old, 
+                                vector_t new, number_t omega)
 {
         if (omega <= 0 || omega >= 2)
-                return; /* such values are ineffective for solving */
+                return; /* метод не будет сходиться, если параметр не в [0,2] */
 
+        /* Ниже реализовано вычисление значения по формуле */
         for (int i=0; i<old.size; i++) {
                 number_t sum = f.vector[i];
                 
@@ -29,13 +32,16 @@ static void relax_iteration(matrix_t m, vector_t f, vector_t old, vector_t new, 
                 new.vector[i] = sum;
         }
 
+        /* Подводим параметр w */
         for (int i=0; i<new.size; i++) {
                 new.vector[i] = new.vector[i] * omega + old.vector[i] * (1 - omega);
         }
 }
 
+/* Решение СЛАУ методом верхней релаксации с заданной точностью и параметром */
 void relax_solve(matrix_t m, vector_t *f, number_t omega, number_t eps)
 {
+        /* Готовим память для векторов итераций и для подсчёта невязки */
         vector_t x1, x2, diff, tmp_vect;
         x1 = vector_create(m.size);
         x2 = vector_create(m.size);
@@ -44,20 +50,28 @@ void relax_solve(matrix_t m, vector_t *f, number_t omega, number_t eps)
         number_t norm = 0;
         int iters = 0;
         do {
+                /* Проводим итерацию метода */
                 relax_iteration(m, *f, x1, x2, omega);
-                matrix_mulMatVector(m, x2, x1); /* now in x1 we have A*x(k+1) to compare with resulting f vector */
+
+                /* Вычисление невязки: считаем A*x2 и помещаем в x1 */ 
+                matrix_mulMatVector(m, x2, x1);
+                /* Вычитаем f */
                 vector_sub(x1, *f, diff);
+                /* Считаем норму невязки */
                 norm = vector_norm(diff);
 
+                /* Меняем местами старый и новый вектора для следующей итерации */
                 tmp_vect = x1;
                 x1 = x2;
                 x2 = tmp_vect;
         } while (iters++ < 50 && fabs(norm) >= eps);
 
+        /* Помещаем результат в f, откуда его заберут снаружи */
         for (int i=0; i<f->size; i++) {
                 f->vector[i] = x1.vector[i];
         }
 
+        /* Освобождаем память */
         vector_free(x1);
         vector_free(x2);
         vector_free(diff);
