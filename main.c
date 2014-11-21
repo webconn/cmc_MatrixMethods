@@ -11,12 +11,26 @@
 #include "gauss_mod.h"
 #include "relax.h"
 
+#include "input.h"
+
 static struct option longopts[] = {
         { .name = "help", .has_arg = 0, .flag = NULL, .val = 'h' },
         { .name = "method", .has_arg = 1, .flag = NULL, .val = 'm' },
         { .name = "operation", .has_arg = 1, .flag = NULL, .val = 'o' },
-        { .name = "format", .has_arg = 1, .flag = NULL, .val = 'f' }
+        { .name = "format", .has_arg = 1, .flag = NULL, .val = 'f' },
+        { .name = "input", .has_arg =1, .flag = NULL, .val = 'i' }
 };
+
+static char *input_names[] = {
+        "text", "formula1", "formula2"
+};
+
+static enum m_inputs {
+        INPUT_STDIN = 0,
+        INPUT_FORM1 = 1,
+        INPUT_FORM2 = 2,
+        INPUT_END
+} input;
 
 static enum m_methods {
         METHOD_GAUSS = 0,
@@ -46,6 +60,21 @@ static char *format_names[] = {
 
 static format_t format;
 
+static void input_stdin(matrix_t *m, vector_t *v)
+{
+        fprintf(stderr, "[INPUT] Type N, than matrix (NxN)\n");
+        *m = matrix_read(stdin);
+        
+        fprintf(stderr, "[INPUT] Type vector f (length %d)\n", m->size);
+        *v = vector_readN(stdin, m->size);
+}
+
+static void input_stdin_m(matrix_t *m)
+{
+        fprintf(stderr, "[INPUT] Type N, than matrix (NxN)\n");
+        *m = matrix_read(stdin);
+}
+
 void op_solve(enum m_methods met, format_t format)
 {
         if (met < 0 || met >= METHOD_END) {
@@ -53,11 +82,25 @@ void op_solve(enum m_methods met, format_t format)
                 return;
         }
 
-        fprintf(stderr, "[INPUT] Type N, than matrix (NxN)\n");
-        matrix_t m = matrix_read(stdin);
-        
-        fprintf(stderr, "[INPUT] Type vector f (length %d)\n", m.size);
-        vector_t f = vector_readN(stdin, m.size);
+        matrix_t m;
+        vector_t f;
+
+        switch (input) {
+                case INPUT_STDIN:
+                        input_stdin(&m, &f);
+                        break;
+                case INPUT_FORM1:
+                        input_form1(&m, &f);
+                        break;
+                case INPUT_FORM2:
+                        input_form2(&m, &f);
+                        break;
+                default:
+                        return;
+        }
+
+        vector_t f_orig = vector_copy(f);
+        matrix_t m_orig = matrix_copy(m);
 
         number_t omega = 1;
         number_t eps = 0.0001;
@@ -82,6 +125,16 @@ void op_solve(enum m_methods met, format_t format)
         fprintf(stderr, "[OUTPUT] Result\n");
         vector_print(stdout, f, format);
 
+        /* Calculate residual */
+        vector_t diff_orig = vector_create(m_orig.size);
+        matrix_mulMatVector(m_orig, f, diff_orig);
+        vector_sub(diff_orig, f_orig, diff_orig);
+
+        fprintf(stderr, "[OUTPUT] Residual: " NUMBER_WRITE_FORMAT "\n", vector_norm(diff_orig));
+
+        matrix_free(m_orig);
+        vector_free(f_orig);
+        vector_free(diff_orig);
         matrix_free(m);
         vector_free(f);
 }
@@ -94,8 +147,20 @@ void op_det(enum m_methods met, format_t format)
                 return;
         }
 
-        fprintf(stderr, "[INPUT] Type N, than matrix (NxN)\n");
-        matrix_t m = matrix_read(stdin);
+        matrix_t m;
+        switch (input) {
+                case INPUT_STDIN:
+                        input_stdin_m(&m);
+                        break;
+                case INPUT_FORM1:
+                        input_form1_m(&m);
+                        break;
+                case INPUT_FORM2:
+                        input_form2_m(&m);
+                        break;
+                default:
+                        return;
+        }
         vector_t f = vector_create(m.size);
 
         number_t det = 0;
@@ -123,8 +188,20 @@ void op_invert(enum m_methods met, format_t format)
                 return;
         }
 
-        fprintf(stderr, "[INPUT] Type N, than matrix (NxN)\n");
-        matrix_t m = matrix_read(stdin);
+        matrix_t m;
+        switch (input) {
+                case INPUT_STDIN:
+                        input_stdin_m(&m);
+                        break;
+                case INPUT_FORM1:
+                        input_form1_m(&m);
+                        break;
+                case INPUT_FORM2:
+                        input_form2_m(&m);
+                        break;
+                default:
+                        return;
+        }
         matrix_t inv;
 
         switch (met) {
@@ -153,6 +230,8 @@ void print_help()
                         "solve, invert\n");
         fprintf(stderr, " -m, --method=<method>\t\tMethod: gauss, gauss_mod, "
                         "relax (only for solve operation)\n");
+        fprintf(stderr, " -i, --input=<source>\t\tInput source: text, formula1, "
+                        "formula2\n");
         fprintf(stderr, " -f, --format=<format>\t\tOutput format: text, latex\n");
         fprintf(stderr, " -h, --help\t\t\tPrint this message\n\n");
 }
@@ -161,20 +240,33 @@ void print_help()
 int main(int argc, char *argv[])
 {
         int c;
-        int flag_gotmet = 0, flag_gotop = 0, flag_gotformat = 0;
+        int flag_gotmet = 0, flag_gotop = 0, flag_gotformat = 0, flag_gotinput = 0;
         argv0 = argv[0];
         
-        while ((c = getopt_long(argc, argv, "hm:o:f:", longopts, NULL)) > 0) {
+        while ((c = getopt_long(argc, argv, "hm:o:f:i:", longopts, NULL)) > 0) {
                 switch (c) {
                         case 'h':
                                 print_help();
                                 exit(0);
+                        case 'i':
+                                flag_gotinput = 1;
+                                while (input != INPUT_END &&
+                                        strcmp(optarg, input_names[input]))
+                                        input++;
+
+                                if (input == INPUT_END) {
+                                        fprintf(stderr, "ERROR: Unknown input: "
+                                                        "%s\n\n", optarg);
+                                        print_help();
+                                        exit(1);
+                                }
+                                break;
                         case 'm':
                                 flag_gotmet = 1;
                                 method = 0;
 
                                 while (method != METHOD_END && 
-                                       strcmp(optarg, method_names[method]))
+                                        strcmp(optarg, method_names[method]))
                                         method++;
 
                                 if (method == METHOD_END) {
@@ -224,6 +316,10 @@ int main(int argc, char *argv[])
 
         if (!flag_gotformat) {
                 format = FORMAT_TEXT;
+        }
+
+        if (!flag_gotinput) {
+                input = INPUT_STDIN;
         }
 
         /* select operation and method */

@@ -1,5 +1,5 @@
 TARGET = matrix
-OBJS = main.o matrix.o gauss.o gauss_mod.o relax.o
+OBJS = main.o matrix.o gauss.o gauss_mod.o relax.o input1.o input2.o
 
 CFLAGS = -std=gnu99 -Iinclude -g
 LDFLAGS = -lm

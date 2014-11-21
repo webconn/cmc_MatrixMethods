@@ -7,7 +7,7 @@
 typedef double number_t;
 #define NUMBER_READ_FORMAT "%lf"
 #define NUMBER_WRITE_FORMAT "%.5g"
-#define ZERO_EPS (0.000001)
+#define ZERO_EPS (1e-100)
 #define NOT_ZERO(n) (((n) >= ZERO_EPS) || ((n) <= -ZERO_EPS))
 
 #define matrix_elem(m, i, j) ((m).matrix[(m).rows[(i)]][(m).cols[(j)]])

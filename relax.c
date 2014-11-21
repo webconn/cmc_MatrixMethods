@@ -7,9 +7,6 @@
 static void relax_iteration(matrix_t m, vector_t f, vector_t old, 
                                 vector_t new, number_t omega)
 {
-        if (omega <= 0 || omega >= 2)
-                return; /* метод не будет сходиться, если параметр не в [0,2] */
-
         /* Ниже реализовано вычисление значения по формуле */
         for (int i=0; i<old.size; i++) {
                 number_t sum = f.vector[i];
@@ -64,7 +61,11 @@ void relax_solve(matrix_t m, vector_t *f, number_t omega, number_t eps)
                 tmp_vect = x1;
                 x1 = x2;
                 x2 = tmp_vect;
-        } while (iters++ < 50 && fabs(norm) >= eps);
+
+                /* Выводим сообщение о текущей итерации (анализ сходимости) */
+                fprintf(stderr, "[RELAX] Iteration %d, residual " NUMBER_WRITE_FORMAT "\n", iters + 1, norm);
+
+        } while (iters++ < 50 && norm >= eps);
 
         /* Помещаем результат в f, откуда его заберут снаружи */
         for (int i=0; i<f->size; i++) {

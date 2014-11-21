@@ -60,7 +60,7 @@ matrix_t matrix_readN(FILE *stream, int N)
 void matrix_print(FILE *stream, matrix_t m, format_t f)
 {
         if (f == FORMAT_LATEX)
-                fprintf(stream, "\\begin{pmatrix}\n");
+                fprintf(stream, "$$\\begin{pmatrix}\n");
 
         for (int i=0; i<m.size; i++) {
                 for (int j=0; j<m.size; j++) {
@@ -77,7 +77,7 @@ void matrix_print(FILE *stream, matrix_t m, format_t f)
         }
 
         if (f == FORMAT_LATEX)
-                fprintf(stream, "\\end{pmatrix}\n");
+                fprintf(stream, "\\end{pmatrix}$$\n");
 }
 
 matrix_t matrix_copy(matrix_t source)
@@ -159,7 +159,7 @@ vector_t vector_readN(FILE *stream, int n)
 void vector_print(FILE *stream, vector_t v, format_t f)
 {
         if (f == FORMAT_LATEX) 
-                fprintf(stream, "\\begin{pmatrix}\n");
+                fprintf(stream, "$$\\begin{pmatrix}\n");
 
         for (int i = 0; i < v.size; i++) {
                 fprintf(stream, NUMBER_WRITE_FORMAT " ", v.vector[i]);
@@ -169,7 +169,7 @@ void vector_print(FILE *stream, vector_t v, format_t f)
         }
 
         if (f == FORMAT_LATEX) 
-                fprintf(stream, "\\end{pmatrix}");
+                fprintf(stream, "\\end{pmatrix}$$");
 
         fputc('\n', stream);
 }
