@@ -139,7 +139,7 @@ matrix_t gauss_mod_invert(matrix_t m)
         /* Переставляем строки обратной матрицы согласно перестановке столбцов
          * исходной матрицы */
         for (int i=0; i<m.size; i++) {
-                result.rows[i] = old_rows[sequence[i]];
+                result.rows[sequence[i]] = old_rows[i];
         }
 
         /* Освобождаем память */
