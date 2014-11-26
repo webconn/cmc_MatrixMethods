@@ -65,7 +65,7 @@ number_t gauss_mod_solve(matrix_t m, vector_t *f)
          * новому порядку переменных */
         vector_t old = vector_copy(*f);
         for (int i=0; i<m.size; i++) {
-                f->vector[i] = old.vector[sequence[i]];
+                f->vector[sequence[i]] = old.vector[i];
         }
 
         /* Освобождаем память */
