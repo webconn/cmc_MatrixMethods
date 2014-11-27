@@ -22,13 +22,14 @@ static struct option longopts[] = {
 };
 
 static char *input_names[] = {
-        "text", "formula1", "formula2"
+        "text", "formula1", "formula2", "hilbert"
 };
 
 static enum m_inputs {
         INPUT_STDIN = 0,
         INPUT_FORM1 = 1,
         INPUT_FORM2 = 2,
+        INPUT_HILBERT = 3,
         INPUT_END
 } input;
 
@@ -95,6 +96,9 @@ void op_solve(enum m_methods met, format_t format)
                 case INPUT_FORM2:
                         input_form2(&m, &f);
                         break;
+                case INPUT_HILBERT:
+                        input_hilbert(&m, &f);
+                        break;
                 default:
                         return;
         }
@@ -121,7 +125,6 @@ void op_solve(enum m_methods met, format_t format)
                         relax_solve(m, &f, omega, eps);
                         break;
         }
-
         fprintf(stderr, "[OUTPUT] Result\n");
         vector_print(stdout, f, format);
 
@@ -157,6 +160,9 @@ void op_det(enum m_methods met, format_t format)
                         break;
                 case INPUT_FORM2:
                         input_form2_m(&m);
+                        break;
+                case INPUT_HILBERT:
+                        input_hilbert_m(&m);
                         break;
                 default:
                         return;
@@ -199,6 +205,9 @@ void op_invert(enum m_methods met, format_t format)
                 case INPUT_FORM2:
                         input_form2_m(&m);
                         break;
+                case INPUT_HILBERT:
+                        input_hilbert_m(&m);
+                        break;
                 default:
                         return;
         }
@@ -231,7 +240,7 @@ void print_help()
         fprintf(stderr, " -m, --method=<method>\t\tMethod: gauss, gauss_mod, "
                         "relax (only for solve operation)\n");
         fprintf(stderr, " -i, --input=<source>\t\tInput source: text, formula1, "
-                        "formula2\n");
+                        "formula2, hilbert\n");
         fprintf(stderr, " -f, --format=<format>\t\tOutput format: text, latex\n");
         fprintf(stderr, " -h, --help\t\t\tPrint this message\n\n");
 }
