@@ -1,0 +1,892 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage[top=2cm, bottom=2cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{cmap}
+\usepackage{graphicx} 
+\usepackage[T2A]{fontenc}
+\usepackage[english,russian]{babel}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{hhline}
+\usepackage{float}
+
+% Title Page
+\title{Отчёт по практическому заданию №1 ``Прямые и итерационные методы решения СЛАУ''}
+\author{Маслов Н.С. группа 205}
+
+\lstset{
+language=C,
+breaklines=true,
+basicstyle=\small\ttfamily,
+numbers=left,
+numberstyle=\tiny,
+frame=tb,
+columns=fullflexible,
+showstringspaces=false,
+extendedchars=\true,
+keepspaces=true
+}
+
+\floatstyle{ruled}
+\newfloat{bash}{H}{lop}
+\floatname{bash}{Консоль}
+
+\begin{document}
+\input{title_page_1.tex}
+
+%\tableofcontents
+
+\section*{Постановка задачи}
+Дана система уравнений $Ax=f$ порядка $n\times n$ с невырожденной матрицей $A$. Требуется написать
+программу, рещающую систему линейных алгебраических уравнений заданного пользователем размера ($n$ - параметр программы)
+методом Гаусса и методом Гаусса с выбором главного элемента.
+
+Предусмотреть возможность задания элементов матрицы системы и её правой части как во входном файле данных, так и путём
+задания специальных формул.
+
+\section*{Цели и задачи практической работы}
+\begin{enumerate}
+ \item Решить заданную СЛАУ методом Гаусса и методом Гаусса с выбором главного элемента;
+ \item Вычислить определитель матрицы $det(A)$;
+ \item Вычислить обратную матрицу $A^{-1}$;
+ \item Исследовать вопрос вычислительной устойчивости метода Гаусса (при больших значениях параметра n);
+ \item Правильность решения СЛАУ подтвердить системой тестов (например, можно использовать ресурсы on-line
+ системы Wolfram|Alpha, пакета Maple и т.п.)
+\end{enumerate}
+
+\section*{Описание методов решения}
+\subsection*{Метод Гаусса}
+Метод Гаусса построен на идее приведения элементарными преобразованиями матрицы к диагональному виду, при этом параллельно
+те же преобразования делаются с вектором правой части выражения.
+
+Ниже приведён алгоритм решения и исходный код модуля. (Исходный код базовых операций с векторами и матрицами приведён
+в приложении 1).
+
+Прямой ход метода Гаусса:
+\begin{enumerate}
+ \item Положим $i = 1$;
+ \item Выберем первую строку матрицы, в которой $i$-й элемент ненулевой; если это не $i$-я строка, то поменяем текущую и найденную
+ строку местами (то же преобразование проведём с вектором правой части);
+ \item Разделим эту строку (и соответствующее значение в векторе правой части) на значение $i$-го элемента: так на диагонали мы 
+ получим единицу;
+ \item Вычтем из последующих строк, в который $i$-й элемент ненулевой, текущую, домноженную на значение $i$-го элемента уменьшаемой
+ строки: так мы получим нулевые элементы в $i$-м столбце на диагонали. Аналогичное действие проделываем в векторе правой части;
+ \item Увеличим $i$ на 1 и, если $i \neq n$, перейдём к шагу 2.
+\end{enumerate}
+
+В результате прямого хода получается треугольная матрица с единицами на диагонали. При обратном ходе метода Гаусса матрица переходит к
+диагональному виду. Обратный ход метода Гаусса проводится следующим образом:
+\begin{enumerate}
+ \item Положим $i = n$, где $n$ - порядок матрицы (выбираем последнюю строку);
+ \item Вычтем из всех вышестоящих строк $i$-ю, домноженную на значение соответствующего элемента строки (задача - оставить нули в 
+ $i$-м столбце над диагональю); аналогичное действие делаем с вектором правой части;
+ \item Уменьшаем $i$ на 1; если $i \neq 0$, переходим к шагу 2.
+\end{enumerate}
+
+
+Рассмотрим пример решения СЛАУ методом Гаусса.
+
+Дана система уравнений
+
+\[
+\begin{cases}
+ x + 2y + 3z = 4 \\
+ 4x + 5z = 8\\
+ 2z = 0
+\end{cases}
+\]
+
+~\\
+Решение методом Гаусса:
+
+$
+\left[
+\begin{array}{ccc|c}
+ 1 & 2 & 3 & 4 \\
+ 4 & 0 & 5 & 8 \\
+ 0 & 0 & 2 & 0 
+\end{array}
+\right] \rightarrow
+$
+$
+\left[
+\begin{array}{ccc|c}
+ 1 & 2 & 3 & 4 \\
+ 0 & -8 & -7 & -8 \\
+ 0 & 0 & 2 & 0 
+\end{array}
+\right] \rightarrow
+$
+$
+\left[
+\begin{array}{ccc|c}
+ 1 & 2 & 3 & 4 \\
+ 0 & 1 & 7/8 & 1 \\
+ 0 & 0 & 1 & 0 
+\end{array}
+\right] \rightarrow
+$
+$
+\left[
+\begin{array}{ccc|c}
+ 1 & 2 & 0 & 4 \\
+ 0 & 1 & 0 & 1 \\
+ 0 & 0 & 1 & 0 
+\end{array}
+\right] \rightarrow
+$
+
+
+$
+\left[
+\begin{array}{ccc|c}
+ 1 & 0 & 0 & 2 \\
+ 0 & 1 & 0 & 1 \\
+ 0 & 0 & 1 & 0 
+\end{array}
+\right]
+$
+
+~\\
+Ответ: $(2, 1, 0)$.
+
+Аналогичным образом метод Гаусса позволяет искать обратную матрицу; в этом случае в правой части записи вместо вектора правой
+части записывается единичная матрица соответствующего размера.
+
+В коде программы был применён унифицированный подход: к реализации алгоритма метода Гаусса подключается набор функций-операторов
+правой части, таким образом, можно одним и тем же кодом работать и с вектором для решения СЛАУ, и с матрицей для поиска обратной.
+
+Исходный код модуля на языке Си:
+
+\lstinputlisting[caption={Исходный код метода Гаусса (файл gauss.c)}]{../gauss.c}
+
+\subsection*{Модифицированный метод Гаусса}
+Отличие модифицированного метода Гаусса от классического заключается в том, что на каждом шаге прямого хода мы ищем наибольший по
+модулю элемент в строке, а не среди строк в одном столбце. С тем учётом, что найденный элемент будет наибольшим по модулю, после
+деления строки на это значение мы получим значения в интервале $[0, 1]$, что позволяет несколько сохранить точность вычислений с 
+учётом ошибок округления (из-за конечности длины машинного слова).
+
+Поскольку в этом методе происходит смена мест столбцов, а не строк (что равнозначно переименованию переменных), появляется
+необходимость переставить элементы в векторе результата (соответственно, строки в матрице, если мы считаем этим методом обратную
+матрицу).
+
+Исходный код модуля на языке Си:
+~\\
+
+\lstinputlisting[caption={Исходный код модифицированного метода Гаусса (файл gauss\_mod.c)}]{../gauss_mod.c}
+
+
+\subsection*{Метод верхней релаксации, метод Зейделя}
+Метод верхней релаксации и метод Зейделя (как частный случай метода релаксаци) - итерационные методы решения СЛАУ. Алгоритм 
+работы заключается в следующем.
+
+Рассмотрим квадратную матрицу 
+
+$$
+A = \begin{bmatrix}
+ a_{11} & a_{12} & \hdots & a_{1n} \\
+ a_{21} & a_{22} & \hdots & a_{2n} \\
+ \vdots & \vdots & \ddots & \vdots \\
+ a_{n1} & a_{n2} & \hdots & a_{nn}
+\end{bmatrix}
+$$
+
+Разложим её на сумму трёх матриц
+
+$$A = D + T_H + T_B$$,
+
+где $D$ - часть матрицы $A$, содержащая её главную диагональ, $T_H$ - нижняя треугольная часть, $T_B$ - верхняя треугольная часть
+(без диагонали).
+
+Введём параметр $\omega$ и запишем рекуррентное соотношение
+
+$$(D + \omega T_H)\frac{(x_{k+1} - x_k)}{\omega} + Ax_k = f$$
+
+Если матрица $A$ самосопряжённая и положительно определённая, либо является матрицей с диагональным преобладанием (при $\omega = 1$),
+при итерировании алгоритма по $k$ вектор $x_k$ будет сходиться к решению СЛАУ $Ax = f$.
+
+При значении параметра $\omega = 1$ метод называется \textit{методом Зейделя}.
+
+Для построения алгоритма вычисления очередной итерации нужно разделить в левой части члены, содержащие $x_k$ и $x_{k+1}$:
+
+$$\bigg(\frac{1}{\omega}D + T_H\bigg)x_{k+1} + \Bigg[\bigg(1 - \frac{1}{\omega}\bigg)D + T_B\Bigg]x_k = f$$
+
+При переходе от векторной записи к поэлементной, получаем формулу для компонент $x_{k+1}$:
+
+$$x_i^{k+1} = x_i^k + \frac{\omega}{a_{ii}}\Bigg(f_i - \sum\limits_{j=1}^{i-1}a_{ij}x_j^{k+1} - \sum\limits_{j=i}^na_{ij}x_j^k\Bigg), i = 1,...,n$$
+
+Эта формула уже довольно просто реализуется в алгоритме.
+
+Условием окончания итерирования можно установить определённое число итераций, либо достижения достаточной точности решения. Последнее
+можно определить, наблюдая за нормой вектора невязки $\|Ax_k - f\|$. В приведённой ниже реализации применён комбинированный подход:
+ограничено число итераций, а также ведётся контроль нормы невязки.
+
+Исходный код модуля на языке Си:
+
+\lstinputlisting[caption={Метод верхней релаксации (файл relax.c)}]{../relax.c}
+
+\section*{Тестирование}
+Для тестирования в программу был добавлен вывод значения невязки ответа, а для метода релаксации - вывод значения невязки результата
+на каждой итерации.
+
+\subsection*{Тест 1. Единичная матрица}
+Отчёт о тестировании каждого алгоритма с единичной матрицей размера $3\times3$ и вектором правой части $(1, 2, 3)^T$:
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+ $ ./matrix -m gauss -o solve < tests/solve1.txt
+ [INPUT] Type N, than matrix (NxN)
+ [INPUT] Type vector f (length 3)
+ [OUTPUT] Result
+ 1 2 3 
+ [OUTPUT] Residual: 0
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+  $ ./matrix -m gauss -o det < tests/solve1.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+1
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Метод Гаусса, подсчёт обратной матрицы}
+ \begin{verbatim}
+  $ ./matrix -m gauss -o invert < tests/solve1.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+1 0 0 
+0 1 0 
+0 0 1 
+ \end{verbatim}
+\end{bash}
+
+
+\begin{bash}
+\caption{Модифицированный метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+ $ ./matrix -m gauss_mod -o solve < tests/solve1.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[OUTPUT] Result
+1 2 3 
+[OUTPUT] Residual: 0
+\end{verbatim}
+\end{bash}
+\begin{bash}
+ \caption{Модифицированный метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+  $ ./matrix -m gauss_mod -o det < tests/solve1.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+1
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Модифицированный метод Гаусса, подсчёт обратной матрицы}
+ \begin{verbatim}
+  $ ./matrix -m gauss_mod -o invert < tests/solve1.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+1 0 0 
+0 1 0 
+0 0 1 
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 1$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve < tests/solve1.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[INPUT] Type 'omega' for overrelaxation method
+[INPUT] Type precisioncoefficient (eps)
+[RELAX] Iteration 1, residual 0
+[OUTPUT] Result
+1 2 3 
+[OUTPUT] Residual: 0
+\end{verbatim}
+\end{bash}
+
+Как видно, все три алгоритма справляются с задачами с максимальной точностью.
+
+\subsection*{Тест 2. СЛАУ из списка примеров}
+
+В списке примеров (вариант 12) предложена следующая СЛАУ с квадратной невырожденной матрицей:
+
+$$
+\begin{cases}
+ 2x_1 - 2x_2 + x_4 = -3,\\
+ 2x_1 + 3x_2 + x_3 - 3x_4 = -6,\\
+ 3x_1 + 4x_2 - x_3 + 2x_4 = 0,\\
+ x_1 + 3x_2 + x_3 - x_4 = 2
+\end{cases}
+$$
+
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+$ ./matrix -m gauss -o solve < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 4)
+[OUTPUT] Result
+-2 1 4 3 
+[OUTPUT] Residual: 1.5384e-15
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+$ ./matrix -m gauss -o det < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+-53
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Метод Гаусса, подсчёт обратной матрицы}
+ \begin{verbatim}
+$ ./matrix -m gauss -o invert -f latex < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+ \end{verbatim}
+$$\begin{pmatrix}
+0.26415  & 0.16981  & 0.075472  & -0.09434  \\
+-0.16981  & -0.037736  & 0.09434  & 0.13208  \\
+0.37736  & -0.4717  & -0.32075  & 1.1509  \\
+0.13208  & -0.41509  & 0.037736  & 0.45283 
+\end{pmatrix}$$
+\end{bash}
+
+
+\begin{bash}
+\caption{Модифицированный метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+ $ ./matrix -m gauss_mod -o solve < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 4)
+[OUTPUT] Result
+-2 1 4 3 
+[OUTPUT] Residual: 4.3512e-15
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Модифицированный метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+$ ./matrix -m gauss_mod -o det < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+-53
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Модифицированный метод Гаусса, подсчёт обратной матрицы}
+ \begin{verbatim}
+$ ./matrix -m gauss_mod -o invert -f latex < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[OUTPUT] Result
+ \end{verbatim}
+$$\begin{pmatrix}
+0.26415  & 0.16981  & 0.075472  & -0.09434  \\
+-0.16981  & -0.037736  & 0.09434  & 0.13208  \\
+0.37736  & -0.4717  & -0.32075  & 1.1509  \\
+0.13208  & -0.41509  & 0.037736  & 0.45283 
+\end{pmatrix}$$
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 1$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve < tests/solve2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 4)
+[INPUT] Type 'omega' for overrelaxation method
+[INPUT] Type precisioncoefficient (eps)
+[RELAX] Iteration 1, residual 49.003
+[RELAX] Iteration 2, residual 379.64
+...
+[RELAX] Iteration 50, residual 1.6483e+45
+[RELAX] Iteration 51, residual 1.2745e+46
+[OUTPUT] Result
+2.1895e+44 -6.1365e+44 -2.991e+45 -4.613e+45 
+[OUTPUT] Residual: 1.2745e+46
+\end{verbatim}
+\end{bash}
+
+Как видно из отчёта, такая система не решается методом верхней релаксации, так как матрица коэффициентов не является положительно
+определённой или матрицей с диагональным преобладанием. Вектор решения в этом случае должен расходиться, что мы и наблюдаем.
+Однако, при решении системы методом Гаусса мы получаем достаточно точное решение (порядок нормы невязки $10^{-15}$).
+
+\subsection*{Тест 3. Положительно определённая матрица (для демонстрации итерационного метода)}
+
+Для демонстрации сходимости метода верхней релаксации, рассмотрим положительно определённую матрицу
+$$\begin{pmatrix}
+    1 & 1 & 0 \\
+    1 & 2 & 0 \\
+    0 & 0 & 1
+\end{pmatrix}$$
+
+с вектором правой части $(1, 2, 3)$.
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+$ ./matrix -m gauss -o solve < tests/solve_relax2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[OUTPUT] Result
+0 1 3 
+[OUTPUT] Residual: 0
+\end{verbatim}
+\end{bash}
+
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 1$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve < tests/solve_relax2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[INPUT] Type 'omega' for overrelaxation method
+[INPUT] Type precisioncoefficient (eps)
+[RELAX] Iteration 1, residual 0.5
+[RELAX] Iteration 2, residual 0.25
+[RELAX] Iteration 3, residual 0.125
+[RELAX] Iteration 4, residual 0.0625
+[RELAX] Iteration 5, residual 0.03125
+[RELAX] Iteration 6, residual 0.015625
+[RELAX] Iteration 7, residual 0.0078125
+[RELAX] Iteration 8, residual 0.0039062
+[RELAX] Iteration 9, residual 0.0019531
+[RELAX] Iteration 10, residual 0.00097656
+[RELAX] Iteration 11, residual 0.00048828
+[RELAX] Iteration 12, residual 0.00024414
+[RELAX] Iteration 13, residual 0.00012207
+[RELAX] Iteration 14, residual 6.1035e-05
+[RELAX] Iteration 15, residual 3.0518e-05
+[RELAX] Iteration 16, residual 1.5259e-05
+[RELAX] Iteration 17, residual 7.6294e-06
+[OUTPUT] Result
+1.5259e-05 0.99999 3 
+[OUTPUT] Residual: 7.6294e-06
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 0.8$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve < tests/solve_relax2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[INPUT] Type 'omega' for overrelaxation method
+[INPUT] Type precisioncoefficient (eps)
+[RELAX] Iteration 1, residual 0.74833
+[RELAX] Iteration 2, residual 0.31496
+[RELAX] Iteration 3, residual 0.20207
+[RELAX] Iteration 4, residual 0.12653
+[RELAX] Iteration 5, residual 0.077129
+[RELAX] Iteration 6, residual 0.046529
+[RELAX] Iteration 7, residual 0.027968
+[RELAX] Iteration 8, residual 0.016791
+[RELAX] Iteration 9, residual 0.010077
+[RELAX] Iteration 10, residual 0.0060464
+[RELAX] Iteration 11, residual 0.0036279
+[RELAX] Iteration 12, residual 0.0021768
+[RELAX] Iteration 13, residual 0.0013061
+[RELAX] Iteration 14, residual 0.00078364
+[RELAX] Iteration 15, residual 0.00047018
+[RELAX] Iteration 16, residual 0.00028211
+[RELAX] Iteration 17, residual 0.00016927
+[RELAX] Iteration 18, residual 0.00010156
+[RELAX] Iteration 19, residual 6.0936e-05
+[RELAX] Iteration 20, residual 3.6562e-05
+[RELAX] Iteration 21, residual 2.1937e-05
+[RELAX] Iteration 22, residual 1.3162e-05
+[RELAX] Iteration 23, residual 7.8973e-06
+[OUTPUT] Result
+1.5795e-05 0.99999 3 
+[OUTPUT] Residual: 7.8973e-06
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 1.3$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve < tests/solve_relax2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[INPUT] Type 'omega' for overrelaxation method
+[INPUT] Type precisioncoefficient (eps)
+[RELAX] Iteration 1, residual 1.4396
+[RELAX] Iteration 2, residual 0.32955
+[RELAX] Iteration 3, residual 0.13734
+[RELAX] Iteration 4, residual 0.029229
+[RELAX] Iteration 5, residual 0.01338
+[RELAX] Iteration 6, residual 0.0026558
+[RELAX] Iteration 7, residual 0.0013379
+[RELAX] Iteration 8, residual 0.00025454
+[RELAX] Iteration 9, residual 0.00013785
+[RELAX] Iteration 10, residual 2.6498e-05
+[RELAX] Iteration 11, residual 1.4662e-05
+[RELAX] Iteration 12, residual 3.0062e-06
+[OUTPUT] Result
+5.6956e-06 1 3 
+[OUTPUT] Residual: 3.0062e-06
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 1.6$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve < tests/solve_relax2.txt 
+[INPUT] Type N, than matrix (NxN)
+[INPUT] Type vector f (length 3)
+[INPUT] Type 'omega' for overrelaxation method
+[INPUT] Type precisioncoefficient (eps)
+[RELAX] Iteration 1, residual 2.5768
+[RELAX] Iteration 2, residual 1.4653
+[RELAX] Iteration 3, residual 0.8945
+[RELAX] Iteration 4, residual 0.53358
+[RELAX] Iteration 5, residual 0.32077
+[RELAX] Iteration 6, residual 0.19234
+[RELAX] Iteration 7, residual 0.11543
+[RELAX] Iteration 8, residual 0.069251
+[RELAX] Iteration 9, residual 0.041552
+[RELAX] Iteration 10, residual 0.024931
+[RELAX] Iteration 11, residual 0.014959
+[RELAX] Iteration 12, residual 0.0089751
+[RELAX] Iteration 13, residual 0.0053851
+[RELAX] Iteration 14, residual 0.003231
+[RELAX] Iteration 15, residual 0.0019386
+[RELAX] Iteration 16, residual 0.0011632
+[RELAX] Iteration 17, residual 0.0006979
+[RELAX] Iteration 18, residual 0.00041874
+[RELAX] Iteration 19, residual 0.00025125
+[RELAX] Iteration 20, residual 0.00015075
+[RELAX] Iteration 21, residual 9.0448e-05
+[RELAX] Iteration 22, residual 5.4269e-05
+[RELAX] Iteration 23, residual 3.2561e-05
+[RELAX] Iteration 24, residual 1.9537e-05
+[RELAX] Iteration 25, residual 1.1722e-05
+[RELAX] Iteration 26, residual 7.0333e-06
+[OUTPUT] Result
+-3.4116e-06 1 3 
+[OUTPUT] Residual: 7.0333e-06
+\end{verbatim}
+\end{bash}
+
+Как видно из отчёта, метод релаксации справляется с задачей с достаточной точностью, при этом наименьшее число итераций для 
+достижения необходимой точности мы получили при значении параметра $\omega = 1.3$. (Значение было подобрано эмпирически, возможно,
+есть более оптимальное значение, но данных примеров достаточно для демонстрации особенностей использования метода релаксации).
+
+\subsection*{Тест 4. Матрица, заданная по формуле (1)}
+
+Пусть матрица и вектор правой части заданы с помощью формул:
+
+$$A_{ij} = \begin{cases}
+       \frac{i + j}{m + n}, i \neq j, \\
+       n + m^2 + \frac{j}{m} + \frac{i}{n}, i = j
+      \end{cases}
+$$,
+$$ b_i = 200 + 50i $$
+
+где $i, j = 1,...,n, n = 20, m = 8$.
+
+Матрицы заполняются внутри программы для того, чтобы не терять точность при переводе чисел из формата с плавающей точкой в
+текстовый и обратно.
+
+Вычисление обратной матрицы здесь опущено из-за размеров матрицы (20).
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+$ ./matrix -m gauss -o solve -i formula1 
+[OUTPUT] Result
+2.1322 2.6631 3.1927 3.721 4.248 4.7737 5.2981 5.8213 6.3431 6.8637 7.3831 7.9012 
+8.418 8.9335 9.4478 9.9609 10.473 10.983 11.493 12.001 
+[OUTPUT] Residual: 1.033e-12
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+$ ./matrix -m gauss -o det -i formula1 
+[OUTPUT] Result
+4.6398e+38
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Модифицированный метод Гаусса, решение СЛАУ}
+\begin{verbatim}
+$ ./matrix -m gauss_mod -o solve -i formula1 
+[OUTPUT] Result
+2.1322 2.6631 3.1927 3.721 4.248 4.7737 5.2981 5.8213 6.3431 6.8637 7.3831 7.9012
+8.418 8.9335 9.4478 9.9609 10.473 10.983 11.493 12.001 
+[OUTPUT] Residual: 1.033e-12
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+ \caption{Модифицированный метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+$ ./matrix -m gauss_mod -o det -i formula1 
+[OUTPUT] Result
+4.6398e+38
+ \end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 1$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve -i formula1 
+[INPUT] Type 'omega' for overrelaxation method
+1
+[INPUT] Type precisioncoefficient (eps)
+0.00001
+[RELAX] Iteration 1, residual 345.83
+[RELAX] Iteration 2, residual 17.645
+[RELAX] Iteration 3, residual 0.45965
+[RELAX] Iteration 4, residual 0.0084147
+[RELAX] Iteration 5, residual 0.00053034
+[RELAX] Iteration 6, residual 1.4704e-05
+[RELAX] Iteration 7, residual 2.7193e-07
+[OUTPUT] Result
+2.1322 2.6631 3.1927 3.721 4.248 4.7737 5.2981 5.8213 6.3431 6.8637 7.3831 7.9012
+8.418 8.9335 9.4478 9.9609 10.473 10.983 11.493 12.001 
+[OUTPUT] Residual: 2.7193e-07
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 0.8$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve -i formula1 
+[INPUT] Type 'omega' for overrelaxation method
+0.8
+[INPUT] Type precisioncoefficient (eps)
+0.00001
+[RELAX] Iteration 1, residual 516.51
+[RELAX] Iteration 2, residual 86.73
+[RELAX] Iteration 3, residual 17.223
+[RELAX] Iteration 4, residual 3.7086
+[RELAX] Iteration 5, residual 0.79942
+[RELAX] Iteration 6, residual 0.16788
+[RELAX] Iteration 7, residual 0.034243
+[RELAX] Iteration 8, residual 0.00681
+[RELAX] Iteration 9, residual 0.0013281
+[RELAX] Iteration 10, residual 0.00025572
+[RELAX] Iteration 11, residual 4.8997e-05
+[RELAX] Iteration 12, residual 9.424e-06
+[OUTPUT] Result
+2.1322 2.6631 3.1927 3.721 4.248 4.7737 5.2981 5.8213 6.3431 6.8637 7.3831 7.9012
+8.418 8.9335 9.4478 9.9609 10.473 10.983 11.493 12.001 
+[OUTPUT] Residual: 9.424e-06
+\end{verbatim}
+\end{bash}
+
+\begin{bash}
+\caption{Метод верхней релаксации, решение СЛАУ, $\omega = 0.8$, $\varepsilon = 0.00001$}
+\begin{verbatim}
+$ ./matrix -m relax -o solve -i formula1 
+[INPUT] Type 'omega' for overrelaxation method
+1.3
+[INPUT] Type precisioncoefficient (eps)
+0.00001
+[RELAX] Iteration 1, residual 1421.7
+[RELAX] Iteration 2, residual 572.57
+[RELAX] Iteration 3, residual 225.95
+[RELAX] Iteration 4, residual 87.296
+[RELAX] Iteration 5, residual 33.075
+[RELAX] Iteration 6, residual 12.316
+[RELAX] Iteration 7, residual 4.5156
+[RELAX] Iteration 8, residual 1.6332
+[RELAX] Iteration 9, residual 0.58347
+[RELAX] Iteration 10, residual 0.20615
+[RELAX] Iteration 11, residual 0.072096
+[RELAX] Iteration 12, residual 0.024978
+[RELAX] Iteration 13, residual 0.0085782
+[RELAX] Iteration 14, residual 0.0029218
+[RELAX] Iteration 15, residual 0.00098738
+[RELAX] Iteration 16, residual 0.00033118
+[RELAX] Iteration 17, residual 0.00011028
+[RELAX] Iteration 18, residual 3.6462e-05
+[RELAX] Iteration 19, residual 1.1973e-05
+[RELAX] Iteration 20, residual 3.9048e-06
+[OUTPUT] Result
+2.1322 2.6631 3.1927 3.721 4.248 4.7737 5.2981 5.8213 6.3431 6.8637 7.3831 7.9012
+8.418 8.9335 9.4478 9.9609 10.473 10.983 11.493 12.001 
+[OUTPUT] Residual: 3.9048e-06
+\end{verbatim}
+\end{bash}
+
+Все три метода справились с задачей с достаточной точностью.
+
+\subsection*{Тест 5. Матрица, заданная по формуле (2)}
+
+Пусть матрица и вектор правой части заданы по формуле:
+
+$$A_{ij} = \begin{cases}
+       q_M^{i + j} + 0.1(j - i), i \neq j, \\
+       (q_M - 1)^{i + j}, i = j
+      \end{cases}
+$$,
+$$ q_M = 1.001 - 2 \cdot 10^{-3} \cdot M $$
+$$ b_i = n \cdot \exp \Big(\frac{x}{i}\Big) \cdot \cos(x) $$
+
+где $i, j = 1,...,n, n = 100, M = 4$.
+
+Матрицы заполняются внутри программы для того, чтобы не терять точность при переводе чисел из формата с плавающей точкой в
+текстовый и обратно.
+
+Вычисление обратной матрицы здесь опущено из-за размеров матрицы (100).
+
+
+\begin{bash}
+ \caption{Метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+$ ./matrix -m gauss -o det -i formula2 
+[OUTPUT] Result
+5.4745e-26
+ \end{verbatim}
+\end{bash}
+
+
+\begin{bash}
+ \caption{Модифицированный метод Гаусса, подсчёт определителя}
+ \begin{verbatim}
+$ ./matrix -m gauss_mod -o det -i formula2 
+[OUTPUT] Result
+5.4745e-26
+ \end{verbatim}
+\end{bash}
+
+Положим $x = 0$. Вывод результата будет опущен, для оценки работы алгоритмов достаточно значения нормы невязки.
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ ($x = 0$)}
+\begin{verbatim}
+$ ./matrix -m gauss -o solve -i formula2 
+[INPUT] Type X:
+0
+[OUTPUT] Result: ... (опущено, очень длинный вывод)
+[OUTPUT] Residual: 1.1188e-08
+\end{verbatim}
+\end{bash}
+
+
+\begin{bash}
+\caption{Модифицированный метод Гаусса, решение СЛАУ ($x = 0$)}
+\begin{verbatim}
+$ ./matrix -o solve -m gauss_mod -i formula2
+[INPUT] Type X:
+0
+[OUTPUT] Result: ... (опущено, очень длинный вывод)
+[OUTPUT] Residual: 2.67e-13
+\end{verbatim}
+\end{bash}
+
+Как мы видим, модифицированный метод Гаусса дал куда лучшее решение, чем традиционный.
+
+Метод верхней релаксации не подходит для решения этой задачи, так как не будет сходимости вектора решения.
+
+Рассмотрим также решения при других значениях $x$.
+
+Положим $x = -10$.
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ ($x = -10$)}
+\begin{verbatim}
+$ ./matrix -m gauss -o solve -i formula2 
+[INPUT] Type X:
+-10
+[OUTPUT] Result: ... (опущено, очень длинный вывод)
+[OUTPUT] Residual: 1.0741e-06
+\end{verbatim}
+\end{bash}
+
+
+\begin{bash}
+\caption{Модифицированный метод Гаусса, решение СЛАУ ($x = -10$)}
+\begin{verbatim}
+$ ./matrix -m gauss_mod -o solve -i formula2 
+[INPUT] Type X:
+-10
+[OUTPUT] Result: ... (опущено, очень длинный вывод)
+[OUTPUT] Residual: 7.4998e-12
+\end{verbatim}
+\end{bash}
+
+Положим $x = 10$.
+
+\begin{bash}
+\caption{Метод Гаусса, решение СЛАУ ($x = 10$)}
+\begin{verbatim}
+$ ./matrix -m gauss -o solve -i formula2 
+[INPUT] Type X:
+10
+[OUTPUT] Result: ... (опущено, очень длинный вывод)
+[OUTPUT] Residual: 0.007408
+\end{verbatim}
+\end{bash}
+
+
+\begin{bash}
+\caption{Модифицированный метод Гаусса, решение СЛАУ ($x = 10$)}
+\begin{verbatim}
+$ ./matrix -m gauss_mod -o solve -i formula2 
+[INPUT] Type X:
+10
+[OUTPUT] Result: ... (опущено, очень длинный вывод)
+[OUTPUT] Residual: 6.242e-08
+\end{verbatim}
+\end{bash}
+
+Как видно, при увеличении по модулю значения $x$, точность теряется у обоих методов решения, но при этом
+модифицированный метод Гаусса даёт гораздо более высокую точность решения.
+
+\section*{Выводы}
+Из проделанной работы можно сделать следующие основные выводы.
+
+У каждого из описанных выше методов есть свои достоинства и недостатки в своих сферах применения. 
+
+Метод Гаусса является достаточно универсальным методом решения СЛАУ, при этом предоставляя возможность вычисления определителя 
+матрицы и подсчёта обратной матрицы. Модификация метода Гаусса с выбором главного элемента в строке в определённом круге задач 
+может значительно уточнить решение.
+
+Итерационные методы позволяют достаточно быстро получить результат требуемой точности, но требуют
+определённой подготовки матрицы для сходимости. Итерационные методы, как правило, более устойчивы к особенностям хранения
+действительных чисел в машинном слове и к соответствующим ошибкам при вычислениях и округлении.
+
+\newpage
+
+\section*{Приложение 1. Исходный код проекта}
+
+Исходные коды проекта доступны на Github: https://github.com/webconn/cmc\_MatrixMethods
+
+Ниже приведены исходные коды модулей, не описанных выше.
+
+\lstinputlisting[caption={Исходный код интерфейса программы (файл main.c)}]{../main.c}
+
+\lstinputlisting[caption={Исходный код библиотеки векторных операций (файл matrix.c)}]{../matrix.c}
+
+\lstinputlisting[caption={Исходный код для генерации матрицы по формуле 1 (файл input1.c)}]{../input1.c}
+
+\lstinputlisting[caption={Исходный код для генерации матрицы по формуле 2 (файл input2.c)}]{../input2.c}
+
+\end{document}          
